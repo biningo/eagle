@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/biningo/eagle/docker"
 	"github.com/biningo/eagle/internal/config"
+	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"github.com/spf13/cobra"
 )
@@ -33,9 +34,12 @@ func getService(serviceName string) {
 		fmt.Println(err)
 		return
 	}
-	containers, _ := docker.ListContainerByImage(context.Background(), cli, serviceName)
+	containers, _ := docker.ListContainerByLabels(context.Background(), cli, config.Conf.Labels)
+	var result []types.Container
 	for _, c := range containers {
-		fmt.Println(c.Names[0])
+		if c.Image == serviceName {
+			result = append(result, c)
+		}
 	}
 }
 
