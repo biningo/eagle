@@ -13,5 +13,7 @@ func Init() *gin.Engine {
 	r.GET("/ping", func(ctx *gin.Context) {
 		ctx.JSON(200, "OK")
 	})
+	InitRegistry(r)
+	InitConfig(r)
 	return r
 }
