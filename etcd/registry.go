@@ -31,8 +31,8 @@ type Registry struct {
 	lease  clientv3.Lease
 }
 
-// New creates etcd registry
-func New(client *clientv3.Client, opts ...Option) *Registry {
+// NewRegistry creates etcd registry
+func NewRegistry(client *clientv3.Client, opts ...Option) *Registry {
 	options := &options{
 		ttl:    time.Second * 15,
 		prefix: "",
@@ -63,7 +63,7 @@ func Prefix(prefix string) Option {
 
 // Register the registration.
 func (r *Registry) Register(ctx context.Context, service *registry.ServiceInstance) error {
-	key := fmt.Sprintf("%s/%s/%s/%s", r.opts.prefix, service.Namespace, service.Name, service.ID)
+	key := r.ServiceKey(service)
 	value, err := json.Marshal(service)
 	if err != nil {
 		return err
@@ -106,7 +106,7 @@ func (r *Registry) Deregister(ctx context.Context, service *registry.ServiceInst
 			r.lease.Close()
 		}
 	}()
-	key := fmt.Sprintf("%s/%s/%s/%s", r.opts.prefix, service.Namespace, service.Name, service.ID)
+	key := r.ServiceKey(service)
 	_, err := r.client.Delete(ctx, key)
 	return err
 }
@@ -114,11 +114,11 @@ func (r *Registry) Deregister(ctx context.Context, service *registry.ServiceInst
 // GetService return the service instances according to the service name.
 func (r *Registry) GetService(ctx context.Context, opts ...registry.ServiceOption) ([]*registry.ServiceInstance, error) {
 	svc := &registry.ServiceInstance{}
-	svc.Namespace = "default"
+	svc.Service.Namespace = "default"
 	for _, o := range opts {
 		o(svc)
 	}
-	key := fmt.Sprintf("%s/%s/%s", r.opts.prefix, svc.Namespace, svc.Name)
+	key := fmt.Sprintf("%s/%s/%s", r.opts.prefix, svc.Service.Namespace, svc.Service.Name)
 	resp, err := r.kv.Get(ctx, key, clientv3.WithPrefix())
 	if err != nil {
 		return nil, err
@@ -131,4 +131,15 @@ func (r *Registry) GetService(ctx context.Context, opts ...registry.ServiceOptio
 		instances = append(instances, svc)
 	}
 	return instances, nil
+}
+
+func (r *Registry) HealthCheck(ctx context.Context, service *registry.ServiceInstance) bool {
+	if ok := service.Service.Check.Checker.Ping(); !ok {
+		return false
+	}
+	return true
+}
+
+func (r *Registry) ServiceKey(service *registry.ServiceInstance) string {
+	return fmt.Sprintf("%s/%s/%s/%s", r.opts.prefix, service.Service.Namespace, service.Service.Name, service.ID)
 }
