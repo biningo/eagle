@@ -3,7 +3,11 @@ package etcd
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"github.com/biningo/eagle/check"
+	"github.com/biningo/eagle/check/checker"
+	"github.com/biningo/eagle/internal/config"
 	"github.com/biningo/eagle/registry"
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"time"
@@ -19,36 +23,56 @@ import (
 type Option func(o *options)
 
 type options struct {
-	ttl    time.Duration
+	ttl    int64
 	prefix string
 }
 
 // Registry is etcd registry.
 type Registry struct {
-	opts   *options
-	client *clientv3.Client
-	kv     clientv3.KV
-	lease  clientv3.Lease
+	opts         *options
+	client       *clientv3.Client
+	kv           clientv3.KV
+	lease        clientv3.Lease
+	serviceCheck *check.ServiceCheck
 }
 
 // NewRegistry creates etcd registry
-func NewRegistry(client *clientv3.Client, opts ...Option) *Registry {
+func NewRegistry(client *clientv3.Client, svc *registry.ServiceInstance, opts ...Option) *Registry {
 	options := &options{
-		ttl:    time.Second * 15,
+		ttl:    15,
 		prefix: "",
 	}
 	for _, o := range opts {
 		o(options)
 	}
 	return &Registry{
-		opts:   options,
-		client: client,
-		kv:     clientv3.NewKV(client),
+		opts:         options,
+		client:       client,
+		kv:           clientv3.NewKV(client),
+		serviceCheck: initServiceCheckFromConfig(*config.Conf.HealthCheckConfig, svc.IP.PrivateIP, svc.Port.PrivatePort),
+	}
+}
+
+func initServiceCheckFromConfig(checkConf config.HealthCheckConfig, host string, port uint16) *check.ServiceCheck {
+	checkerType := checkConf.Type
+	var cker checker.Checker
+	switch checkerType {
+	case "tcp":
+		cker = checker.NewTcPChecker(host, port)
+	case "http":
+		cker = nil
+	}
+	return &check.ServiceCheck{
+		Checker:  cker,
+		Interval: checkConf.Interval,
+		Timeout:  checkConf.Timeout,
+		Host:     host,
+		Port:     port,
 	}
 }
 
 // RegisterTTL with register ttl.
-func RegisterTTL(ttl time.Duration) Option {
+func RegisterTTL(ttl int64) Option {
 	return func(o *options) {
 		o.ttl = ttl
 	}
@@ -63,6 +87,9 @@ func Prefix(prefix string) Option {
 
 // Register the registration.
 func (r *Registry) Register(ctx context.Context, service *registry.ServiceInstance) error {
+	if r.serviceCheck == nil {
+		return errors.New("service check is not exist")
+	}
 	key := r.ServiceKey(service)
 	value, err := json.Marshal(service)
 	if err != nil {
@@ -72,7 +99,7 @@ func (r *Registry) Register(ctx context.Context, service *registry.ServiceInstan
 		r.lease.Close()
 	}
 	r.lease = clientv3.NewLease(r.client)
-	grant, err := r.lease.Grant(ctx, int64(r.opts.ttl))
+	grant, err := r.lease.Grant(ctx, r.opts.ttl)
 	if err != nil {
 		return err
 	}
@@ -133,11 +160,20 @@ func (r *Registry) GetService(ctx context.Context, opts ...registry.ServiceOptio
 	return instances, nil
 }
 
-func (r *Registry) HealthCheck(ctx context.Context, service *registry.ServiceInstance) bool {
-	if ok := service.Service.Check.Checker.Ping(); !ok {
-		return false
+func (r *Registry) HealthCheck(svc *registry.ServiceInstance) {
+	tick := time.Tick(time.Duration(r.serviceCheck.Interval) * time.Second)
+	for {
+		select {
+		case <-tick:
+			if ok := r.serviceCheck.Checker.Ping(r.serviceCheck.Timeout); !ok {
+				if err := r.Deregister(context.Background(), svc); err != nil {
+					fmt.Println(err)
+				}
+				return
+			}
+		default:
+		}
 	}
-	return true
 }
 
 func (r *Registry) ServiceKey(service *registry.ServiceInstance) string {
