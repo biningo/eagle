@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/biningo/eagle/docker"
 	"github.com/biningo/eagle/etcd"
 	"github.com/biningo/eagle/internal/config"
-	"github.com/biningo/eagle/registry"
 	"github.com/biningo/eagle/utils"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/events"
@@ -18,17 +18,17 @@ import (
 
 func RegistryAndHealthCheck(container types.Container, cli *clientv3.Client) {
 	svc := utils.ContainerToServiceInstance(container)
-	etcdRegistry := etcd.NewRegistry(cli)
+	etcdRegistry := etcd.NewRegistry(cli, svc)
 	if err := etcdRegistry.Register(context.Background(), svc); err != nil {
 		fmt.Println(err)
 		return
 	}
-	go registry.Check(svc, etcdRegistry)
+	go etcdRegistry.HealthCheck(svc)
 }
 
 func Deregister(container types.Container, cli *clientv3.Client) {
 	svc := utils.ContainerToServiceInstance(container)
-	etcdRegistry := etcd.NewRegistry(cli)
+	etcdRegistry := etcd.NewRegistry(cli, svc)
 	if err := etcdRegistry.Deregister(context.Background(), svc); err != nil {
 		fmt.Println(err)
 		return
@@ -59,9 +59,13 @@ func Run() {
 	}
 
 	etcdCli, err := clientv3.New(clientv3.Config{
-		Endpoints: config.Conf.Endpoints,
+		Endpoints:   config.Conf.Endpoints,
+		DialTimeout: time.Second * 5,
 	})
-
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 	containers, err := docker.ListContainerByLabels(context.Background(), dockerCli, config.Conf.Labels)
 	if err != nil {
 		fmt.Println(err)
@@ -71,6 +75,7 @@ func Run() {
 		RegistryAndHealthCheck(c, etcdCli)
 	}
 	msg, errCh := docker.ContainerEvents(context.Background(), dockerCli, config.Conf.Labels)
+	fmt.Println("watch docker container.....")
 	for {
 		select {
 		case v := <-msg:
