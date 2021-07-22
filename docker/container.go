@@ -28,20 +28,6 @@ func ListContainerByLabels(ctx context.Context, client *client.Client, labels []
 	})
 }
 
-func ListContainerByImage(ctx context.Context, client *client.Client, image string) ([]types.Container, error) {
-	containers, err := client.ContainerList(ctx, types.ContainerListOptions{})
-	if err != nil {
-		return nil, err
-	}
-	var result []types.Container
-	for _, c := range containers {
-		if c.Image == image {
-			result = append(result, c)
-		}
-	}
-	return result, nil
-}
-
 func ContainerEvents(ctx context.Context, client *client.Client, labels []string) (<-chan events.Message, <-chan error) {
 	return client.Events(ctx, types.EventsOptions{Filters: makeLabelFilter(labels)})
 }
