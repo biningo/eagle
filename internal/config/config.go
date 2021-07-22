@@ -13,9 +13,21 @@ import (
 var Conf EagleConfig
 
 type EagleConfig struct {
-	Labels        []string `yaml:"labels"`
-	*EtcdConfig   `mapstructure:"etcd"`
-	*ServerConfig `mapstructure:"server"`
+	Labels             []string `yaml:"labels"`
+	*HealthCheckConfig `mapstructure:"health"`
+	*EtcdConfig        `mapstructure:"etcd"`
+	*ServerConfig      `mapstructure:"server"`
+}
+
+type CheckerConfig struct {
+	Type string `yaml:"type"`
+	URL  string `yaml:"url"`
+}
+
+type HealthCheckConfig struct {
+	Timeout        uint8 `yaml:"timeout"`
+	Interval       uint8 `yaml:"interval"`
+	*CheckerConfig `mapstructure:"checker"`
 }
 
 type EtcdConfig struct {
@@ -34,7 +46,7 @@ func InitConfigDefault() {
 	Conf.ServerConfig = sc
 
 	ec := &EtcdConfig{}
-	ec.Endpoints = []string{fmt.Sprintf("%s:%s", Conf.Host, "2380")}
+	ec.Endpoints = []string{fmt.Sprintf("%s:%s", "127.0.0.1", "2380")}
 	Conf.EtcdConfig = ec
 
 	Conf.Labels = []string{"eagle"}

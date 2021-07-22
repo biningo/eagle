@@ -9,3 +9,9 @@ etcd:
   endpoints:
     - "127.0.0.1:2380"
 
+health:
+  timeout: 5
+  interval: 3
+  checker:
+    type: tcp
+
