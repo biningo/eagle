@@ -13,29 +13,57 @@ type Service struct {
 	Check     *ServiceCheck
 }
 
+type IP struct {
+	PublicIP  string `json:"public_ip"`
+	PrivateIP string `json:"private_ip"`
+}
+type Port struct {
+	PublicPort  uint16 `json:"public_port"`
+	PrivatePort uint16 `json:"private_port"`
+}
 type ServiceInstance struct {
 	Service
+	IP   IP
+	Port Port
 	ID   string `json:"id"`
-	IP   string `json:"ip"`
-	Port int16  `json:"port"`
+}
+
+func NewServiceInstance(name string, id string, privateIP string, privatePort uint16, opts ...ServiceOption) *ServiceInstance {
+	svc := &ServiceInstance{}
+	svc.ID = id
+	svc.Service.Name = name
+	svc.Service.Namespace = "default"
+	svc.IP = IP{
+		PublicIP:  privateIP,
+		PrivateIP: privateIP,
+	}
+	svc.Port = Port{
+		PublicPort:  privatePort,
+		PrivatePort: privatePort,
+	}
+
+	for _, o := range opts {
+		o(svc)
+	}
+	return svc
 }
 
 type ServiceOption func(*ServiceInstance)
 
-func Namespace(namespace string) ServiceOption {
+func WithNamespace(namespace string) ServiceOption {
 	return func(service *ServiceInstance) {
-		service.Namespace = namespace
+		service.Service.Namespace = namespace
 	}
 }
 
-func Name(name string) ServiceOption {
+func WithPrivateIP(privateIP string) ServiceOption {
 	return func(service *ServiceInstance) {
-		service.Name = name
+		service.IP.PrivateIP = privateIP
 	}
 }
 
-func Check(check *ServiceCheck) ServiceOption {
+func WithPrivatePort(privatePort uint16) ServiceOption {
 	return func(service *ServiceInstance) {
-		service.Check = check
+		service.Port.PrivatePort = privatePort
 	}
 }
