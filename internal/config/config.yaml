@@ -1,0 +1,11 @@
+labels:
+  - "eagle"
+
+server:
+  host: "127.0.0.1"
+  port: "9999"
+
+etcd:
+  endpoints:
+    - "127.0.0.1:2380"
+
