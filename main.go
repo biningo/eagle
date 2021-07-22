@@ -22,8 +22,12 @@
 
 package main
 
-import "github.com/biningo/eagle/cmd"
+import (
+	"github.com/biningo/eagle/cmd"
+	"github.com/biningo/eagle/internal/config"
+)
 
 func main() {
+	config.InitConfigDefault()
 	cmd.Execute()
 }
