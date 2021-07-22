@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"github.com/biningo/eagle/docker"
 	"log"
 	"net/http"
 	"os"
@@ -37,7 +36,5 @@ func Run(addr string, handler http.Handler) {
 	if err := srv.Shutdown(ctx); err != nil {
 		panic(err)
 	}
-	//close
-	docker.Cli.Close()
 	log.Println("Server exiting")
 }
