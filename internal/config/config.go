@@ -28,10 +28,16 @@ type ServerConfig struct {
 }
 
 func InitConfigDefault() {
-	Conf.Port = "9999"
-	Conf.Host = "127.0.0.1"
-	Conf.EtcdConfig.Endpoints = []string{fmt.Sprintf("%s:%s", Conf.Host, "2380")}
+	sc := &ServerConfig{}
+	sc.Port = "9999"
+	sc.Host = "127.0.0.1"
+
+	ec := &EtcdConfig{}
+	ec.Endpoints = []string{fmt.Sprintf("%s:%s", Conf.Host, "2380")}
+
 	Conf.Labels = []string{"eagle"}
+	Conf.EtcdConfig = ec
+	Conf.ServerConfig = sc
 }
 
 func InitConfigFromFile(filepath string) error {
