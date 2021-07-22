@@ -31,13 +31,13 @@ func InitConfigDefault() {
 	sc := &ServerConfig{}
 	sc.Port = "9999"
 	sc.Host = "127.0.0.1"
+	Conf.ServerConfig = sc
 
 	ec := &EtcdConfig{}
 	ec.Endpoints = []string{fmt.Sprintf("%s:%s", Conf.Host, "2380")}
+	Conf.EtcdConfig = ec
 
 	Conf.Labels = []string{"eagle"}
-	Conf.EtcdConfig = ec
-	Conf.ServerConfig = sc
 }
 
 func InitConfigFromFile(filepath string) error {
