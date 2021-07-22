@@ -2,8 +2,12 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/biningo/eagle/internal/config"
 	"os"
 
+	"github.com/biningo/eagle/agent"
+	"github.com/biningo/eagle/app/router"
+	"github.com/biningo/eagle/app/server"
 	"github.com/spf13/cobra"
 )
 
@@ -17,7 +21,9 @@ var rootCmd = &cobra.Command{
 	Short: "Registry and configuration center agent",
 	Long:  `Registry and configuration center agent.Use etcd as the base storage.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("[eagle] unrecognized command")
+		//fmt.Println("[eagle] unrecognized command")
+		go agent.Run()
+		server.Run(fmt.Sprintf("%s:%s", config.Conf.Host, config.Conf.Port), router.Init())
 	},
 }
 
