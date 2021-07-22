@@ -14,6 +14,9 @@ type Registrar interface {
 	Register(ctx context.Context, service *ServiceInstance) error
 	// Deregister the registration.
 	Deregister(ctx context.Context, service *ServiceInstance) error
+
+	//HealthCheck the registration.
+	HealthCheck(ctx context.Context, service *ServiceInstance) bool
 }
 
 // Discovery is service discovery.
