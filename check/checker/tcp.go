@@ -23,7 +23,7 @@ func NewTcPChecker(host string, port uint16) *TcpChecker {
 }
 
 func (c TcpChecker) Ping(timeout uint8) bool {
-	if _, err := net.DialTimeout("tcp", fmt.Sprintf("%s:%s", c.Host, c.Port), time.Duration(timeout)*time.Second); err != nil {
+	if _, err := net.DialTimeout("tcp", fmt.Sprintf("%s:%d", c.Host, c.Port), time.Duration(timeout)*time.Second); err != nil {
 		return false
 	}
 	return true
