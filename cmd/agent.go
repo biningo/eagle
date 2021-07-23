@@ -15,11 +15,8 @@ import (
 var agentCmd = &cobra.Command{
 	Use:   "agent",
 	Short: "run agent",
+	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		if len(args) == 0 {
-			fmt.Println("[agent] unrecognized command")
-			return
-		}
 		switch args[0] {
 		case "run":
 			agent.Run()

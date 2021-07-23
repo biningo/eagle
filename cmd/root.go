@@ -12,7 +12,19 @@ import (
 )
 
 func init() {
+	rootCmd.Flags().String("config", "config.yaml", "Configuration file for eagle.")
+}
 
+func initConfigFromFilePath(cmd *cobra.Command) {
+	filepath, err := cmd.Flags().GetString("config")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	if err := config.InitConfigFromFile(filepath); err != nil {
+		fmt.Println(err)
+		return
+	}
 }
 
 // rootCmd represents the base command when called without any subcommands
@@ -22,6 +34,7 @@ var rootCmd = &cobra.Command{
 	Long:  `Registry and configuration center agent.Use etcd as the base storage.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		//fmt.Println("[eagle] unrecognized command")
+		initConfigFromFilePath(cmd)
 		go agent.Run()
 		server.Run(fmt.Sprintf("%s:%s", config.Conf.Host, config.Conf.Port), router.Init())
 	},
