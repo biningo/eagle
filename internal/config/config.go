@@ -49,6 +49,15 @@ func InitConfigDefault() {
 	ec.Endpoints = []string{fmt.Sprintf("%s:%s", "127.0.0.1", "2380")}
 	Conf.EtcdConfig = ec
 
+	health := &HealthCheckConfig{
+		Timeout:  5,
+		Interval: 2,
+		CheckerConfig: &CheckerConfig{
+			Type: "tcp",
+		},
+	}
+	Conf.HealthCheckConfig = health
+
 	Conf.Labels = []string{"eagle"}
 }
 
