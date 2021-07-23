@@ -169,9 +169,11 @@ func (r *Registry) HealthCheck(svc *registry.ServiceInstance) {
 				if err := r.Deregister(context.Background(), svc); err != nil {
 					fmt.Println(err)
 				}
+				if r.lease != nil {
+					r.lease.Close()
+				}
 				return
 			}
-		default:
 		}
 	}
 }
