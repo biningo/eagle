@@ -13,7 +13,7 @@ import (
 
 func ContainerToServiceInstance(container types.Container) *registry.ServiceInstance {
 	svc := registry.NewServiceInstance(
-		container.Names[0],
+		container.Image,
 		container.ID,
 		container.NetworkSettings.Networks["bridge"].IPAddress,
 		container.Ports[0].PrivatePort,
