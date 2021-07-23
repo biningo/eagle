@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"github.com/biningo/eagle/docker"
 	"github.com/biningo/eagle/internal/config"
-	"github.com/docker/docker/api/types"
+	"github.com/biningo/eagle/utils"
 	"github.com/docker/docker/client"
+	"github.com/liushuochen/gotable"
 	"github.com/spf13/cobra"
 )
 
@@ -22,9 +23,14 @@ func listService() {
 		fmt.Println(err)
 		return
 	}
+	tb, err := gotable.Create("Namespace", "Name", "ID", "PublicIP", "PublicPort", "PrivateIP", "PrivatePort", "Labels")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 	containers, _ := docker.ListContainerByLabels(context.Background(), cli, config.Conf.Labels)
 	for _, c := range containers {
-		fmt.Println(c.Names[0])
+		utils.ShowServiceInstance(c, tb)
 	}
 }
 
@@ -34,11 +40,15 @@ func getService(serviceName string) {
 		fmt.Println(err)
 		return
 	}
+	tb, err := gotable.Create("Namespace", "Name", "ID", "PublicIP", "PublicPort", "PrivateIP", "PrivatePort", "Labels")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 	containers, _ := docker.ListContainerByLabels(context.Background(), cli, config.Conf.Labels)
-	var result []types.Container
 	for _, c := range containers {
 		if c.Image == serviceName {
-			result = append(result, c)
+			utils.ShowServiceInstance(c, tb)
 		}
 	}
 }
