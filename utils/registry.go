@@ -19,8 +19,8 @@ func ContainerToServiceInstance(container types.Container, namespace string) *re
 		container.ID,
 		container.NetworkSettings.Networks[config.Conf.DockerConfig.Network].IPAddress,
 		container.Ports[0].PrivatePort,
-		container.NetworkSettings.Networks[config.Conf.DockerConfig.Network].IPAddress,
-		container.Ports[1].PrivatePort,
+		config.Conf.Host,
+		container.Ports[0].PublicPort,
 	)
 	return svc
 }
