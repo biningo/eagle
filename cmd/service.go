@@ -32,6 +32,7 @@ func listService() {
 	for _, c := range containers {
 		utils.ShowServiceInstance(c, tb)
 	}
+	tb.PrintTable()
 }
 
 func getService(serviceName string) {
@@ -56,11 +57,8 @@ func getService(serviceName string) {
 var serviceCmd = &cobra.Command{
 	Use:   "service",
 	Short: "show docker service info",
+	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		if len(args) == 0 {
-			fmt.Println("[service] unrecognized command")
-			return
-		}
 		command := args[0]
 		switch command {
 		case "list":
