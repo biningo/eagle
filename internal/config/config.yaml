@@ -1,6 +1,6 @@
 labels:
   - "eagle"
-
+namespace: "default"
 server:
   host: "127.0.0.1"
   port: "9999"
@@ -8,6 +8,10 @@ server:
 etcd:
   endpoints:
     - "127.0.0.1:2380"
+  prefix: "eagle"
+
+docker:
+  network: "bridge"
 
 health:
   timeout: 5

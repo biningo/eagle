@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"github.com/biningo/eagle/internal/config"
 	"github.com/biningo/eagle/registry"
 	"github.com/docker/docker/api/types"
 )
@@ -11,12 +12,15 @@ import (
 *@Describe
 **/
 
-func ContainerToServiceInstance(container types.Container) *registry.ServiceInstance {
+func ContainerToServiceInstance(container types.Container, namespace string) *registry.ServiceInstance {
 	svc := registry.NewServiceInstance(
+		namespace,
 		container.Image,
 		container.ID,
-		container.NetworkSettings.Networks["bridge"].IPAddress,
+		container.NetworkSettings.Networks[config.Conf.DockerConfig.Network].IPAddress,
 		container.Ports[0].PrivatePort,
+		container.NetworkSettings.Networks[config.Conf.DockerConfig.Network].IPAddress,
+		container.Ports[1].PrivatePort,
 	)
 	return svc
 }

@@ -78,8 +78,8 @@ func RegisterTTL(ttl int64) Option {
 	}
 }
 
-// Prefix with register prefix
-func Prefix(prefix string) Option {
+// WithPrefix with register prefix
+func WithPrefix(prefix string) Option {
 	return func(o *options) {
 		o.prefix = prefix
 	}

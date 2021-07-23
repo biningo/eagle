@@ -27,22 +27,18 @@ type ServiceInstance struct {
 	ID   string `json:"id"`
 }
 
-func NewServiceInstance(name string, id string, privateIP string, privatePort uint16, opts ...ServiceOption) *ServiceInstance {
+func NewServiceInstance(namespace string, name string, id string, privateIP string, privatePort uint16, publicIP string, publicPort uint16) *ServiceInstance {
 	svc := &ServiceInstance{}
 	svc.ID = id
 	svc.Service.Name = name
-	svc.Service.Namespace = "default"
+	svc.Service.Namespace = namespace
 	svc.IP = IP{
-		PublicIP:  privateIP,
+		PublicIP:  publicIP,
 		PrivateIP: privateIP,
 	}
 	svc.Port = Port{
-		PublicPort:  privatePort,
+		PublicPort:  publicPort,
 		PrivatePort: privatePort,
-	}
-
-	for _, o := range opts {
-		o(svc)
 	}
 	return svc
 }
