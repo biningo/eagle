@@ -3,6 +3,7 @@ package agent
 import (
 	"context"
 	"fmt"
+	"github.com/biningo/eagle/registry"
 	"log"
 	"time"
 
@@ -16,9 +17,18 @@ import (
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
-func RegistryAndHealthCheck(container types.Container, cli *clientv3.Client) {
+type Agent struct {
+	registrars map[string]registry.Registrar
+	services   map[string]*registry.ServiceInstance
+	dockerCli  *client.Client
+	etcdCli    *clientv3.Client
+}
+
+func (a *Agent) RegistryAndHealthCheck(container types.Container) {
 	svc := utils.ContainerToServiceInstance(container)
-	etcdRegistry := etcd.NewRegistry(cli, svc)
+	etcdRegistry := etcd.NewRegistry(a.etcdCli, svc)
+	a.registrars[svc.ID] = etcdRegistry
+	a.services[svc.ID] = svc
 	if err := etcdRegistry.Register(context.Background(), svc); err != nil {
 		fmt.Println(err)
 		return
@@ -26,27 +36,26 @@ func RegistryAndHealthCheck(container types.Container, cli *clientv3.Client) {
 	go etcdRegistry.HealthCheck(svc)
 }
 
-func Deregister(container types.Container, cli *clientv3.Client) {
-	svc := utils.ContainerToServiceInstance(container)
-	etcdRegistry := etcd.NewRegistry(cli, svc)
+func (a *Agent) Deregister(id string) {
+	etcdRegistry := a.registrars[id]
+	svc := a.services[id]
 	if err := etcdRegistry.Deregister(context.Background(), svc); err != nil {
 		fmt.Println(err)
 		return
 	}
 }
 
-func Action(msg events.Message, dockerCli *client.Client, etcdCli *clientv3.Client) {
-	container, err := docker.GetContainer(context.Background(), dockerCli, msg.ID)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
+func (a *Agent) Action(msg events.Message) {
 	switch msg.Action {
 	case "start":
-		RegistryAndHealthCheck(container, etcdCli)
+		container, err := docker.GetContainer(context.Background(), a.dockerCli, msg.ID)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		a.RegistryAndHealthCheck(container)
 	case "die":
-		Deregister(container, etcdCli)
+		a.Deregister(msg.ID)
 	default:
 	}
 }
@@ -66,20 +75,28 @@ func Run() {
 		fmt.Println(err)
 		return
 	}
+
+	agent := &Agent{
+		registrars: make(map[string]registry.Registrar),
+		services:   make(map[string]*registry.ServiceInstance),
+		dockerCli:  dockerCli,
+		etcdCli:    etcdCli,
+	}
+
 	containers, err := docker.ListContainerByLabels(context.Background(), dockerCli, config.Conf.Labels)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 	for _, c := range containers {
-		RegistryAndHealthCheck(c, etcdCli)
+		agent.RegistryAndHealthCheck(c)
 	}
 	msg, errCh := docker.ContainerEvents(context.Background(), dockerCli, config.Conf.Labels)
 	fmt.Println("watch docker container.....")
 	for {
 		select {
 		case v := <-msg:
-			Action(v, dockerCli, etcdCli)
+			agent.Action(v)
 		case err = <-errCh:
 			fmt.Println(err)
 			return
