@@ -25,16 +25,9 @@ package main
 import (
 	"github.com/biningo/eagle/cmd"
 	"github.com/biningo/eagle/internal/config"
-	"os"
 )
 
 func main() {
-	if len(os.Args) < 1 {
-		config.InitConfigDefault()
-	} else {
-		if err := config.InitConfigFromFile(os.Args[0]); err != nil {
-			panic(err)
-		}
-	}
+	config.InitConfigDefault()
 	cmd.Execute()
 }
