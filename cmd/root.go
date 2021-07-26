@@ -12,13 +12,16 @@ import (
 )
 
 func init() {
-	rootCmd.PersistentFlags().String("config", "config.yaml", "Configuration file for eagle.")
+	rootCmd.PersistentFlags().String("config", "", "Configuration file for eagle.")
 }
 
 func InitConfigFromFilePath(cmd *cobra.Command) {
 	filepath, err := cmd.PersistentFlags().GetString("config")
 	if err != nil {
 		fmt.Println(err)
+		return
+	}
+	if filepath == "" {
 		return
 	}
 	if err := config.InitConfigFromFile(filepath); err != nil {
