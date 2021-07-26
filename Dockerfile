@@ -9,4 +9,4 @@ LABEL maintainer="icepan@aliyun.com"
 ENV DOCKER_HOST="unix:///tmp/docker.sock"
 EXPOSE 9999
 COPY --from=builder /build/eagle /
-ENTRYPOINT ["/eagle","server"]
+ENTRYPOINT ["/eagle"]
