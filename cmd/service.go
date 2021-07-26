@@ -59,6 +59,7 @@ var serviceCmd = &cobra.Command{
 	Short: "show docker service info",
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		InitConfigFromFilePath(rootCmd)
 		command := args[0]
 		switch command {
 		case "list":

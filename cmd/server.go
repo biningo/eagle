@@ -19,6 +19,7 @@ var serverCmd = &cobra.Command{
 	Short: "run agent server",
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		InitConfigFromFilePath(rootCmd)
 		switch args[0] {
 		case "run":
 			server.Run(fmt.Sprintf("%s:%s", config.Conf.Host, config.Conf.Port), router.Init())

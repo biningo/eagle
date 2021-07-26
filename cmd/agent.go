@@ -17,6 +17,7 @@ var agentCmd = &cobra.Command{
 	Short: "run agent",
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		InitConfigFromFilePath(rootCmd)
 		switch args[0] {
 		case "run":
 			agent.Run()
