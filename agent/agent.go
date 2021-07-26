@@ -25,7 +25,7 @@ type Agent struct {
 }
 
 func (a *Agent) RegistryAndHealthCheck(container types.Container) {
-	svc := utils.ContainerToServiceInstance(container, config.Conf.Namespace)
+	svc := utils.ContainerToServiceInstance(container)
 	etcdRegistry := etcd.NewRegistry(a.etcdCli, svc, etcd.WithPrefix(config.Conf.Prefix))
 	a.registrars[svc.ID] = etcdRegistry
 	a.services[svc.ID] = svc

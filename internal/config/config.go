@@ -13,7 +13,6 @@ import (
 var Conf EagleConfig
 
 type EagleConfig struct {
-	Namespace          string   `yaml:"namespace"`
 	Labels             []string `yaml:"labels"`
 	*HealthCheckConfig `mapstructure:"health"`
 	*EtcdConfig        `mapstructure:"etcd"`
@@ -72,7 +71,6 @@ func InitConfigDefault() {
 	Conf.DockerConfig = docker
 
 	Conf.Labels = []string{"eagle"}
-	Conf.Namespace = "default"
 }
 
 func InitConfigFromFile(filepath string) error {

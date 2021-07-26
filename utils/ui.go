@@ -2,7 +2,6 @@ package utils
 
 import (
 	"fmt"
-	"github.com/biningo/eagle/internal/config"
 	"github.com/docker/docker/api/types"
 	"github.com/liushuochen/gotable/table"
 	"strconv"
@@ -16,7 +15,7 @@ import (
 **/
 
 func ShowServiceInstance(container types.Container, tb *table.Table) {
-	svc := ContainerToServiceInstance(container, config.Conf.Namespace)
+	svc := ContainerToServiceInstance(container)
 	if err := tb.AddRow(map[string]string{
 		"Namespace":   svc.Namespace,
 		"Name":        svc.Name,
