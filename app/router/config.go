@@ -16,6 +16,6 @@ func InitConfig(r *gin.Engine, etcdCli *clientv3.Client) {
 	router := r.Group("/config/:namespace")
 	router.GET("/configurations", api.ListConfiguration(etcdCli))
 	router.GET("/configurations/:filename", api.GetConfiguration(etcdCli))
-	router.PUT("/configurations/:filename", api.UploadConfiguration(etcdCli))
+	router.POST("/configurations/:filename", api.UploadConfiguration(etcdCli))
 	router.DELETE("/configurations/:filename", api.DelConfiguration(etcdCli))
 }
