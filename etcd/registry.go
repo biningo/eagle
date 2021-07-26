@@ -145,7 +145,7 @@ func (r *Registry) GetService(ctx context.Context, opts ...registry.ServiceOptio
 	for _, o := range opts {
 		o(svc)
 	}
-	key := fmt.Sprintf("%s/%s/%s", r.opts.prefix, svc.Service.Namespace, svc.Service.Name)
+	key := fmt.Sprintf("%s/registry/%s/%s", r.opts.prefix, svc.Service.Namespace, svc.Service.Name)
 	resp, err := r.kv.Get(ctx, key, clientv3.WithPrefix())
 	if err != nil {
 		return nil, err
@@ -179,5 +179,5 @@ func (r *Registry) HealthCheck(svc *registry.ServiceInstance) {
 }
 
 func (r *Registry) ServiceKey(service *registry.ServiceInstance) string {
-	return fmt.Sprintf("%s/%s/%s/%s", r.opts.prefix, service.Service.Namespace, service.Service.Name, service.ID)
+	return fmt.Sprintf("%s/registry/%s/%s/%s", r.opts.prefix, service.Service.Namespace, service.Service.Name, service.ID)
 }

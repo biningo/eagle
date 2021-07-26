@@ -3,6 +3,7 @@ package router
 import (
 	"github.com/biningo/eagle/app/api"
 	"github.com/gin-gonic/gin"
+	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 /**
@@ -11,9 +12,9 @@ import (
 *@Describe
 **/
 
-func InitRegistry(r *gin.Engine) {
+func InitRegistry(r *gin.Engine, etcdCli *clientv3.Client) {
 	router := r.Group("/registry/:namespace")
-	router.GET("/services", api.ListService)
-	router.GET("/services/:serviceName", api.GetServiceByName)
-	router.GET("/services/:serviceName/:serviceID", api.GetServiceInstance)
+	router.GET("/services", api.ListService(etcdCli))
+	router.GET("/services/:serviceName", api.GetServiceByName(etcdCli))
+	router.GET("/services/:serviceName/:serviceID", api.GetServiceInstance(etcdCli))
 }
